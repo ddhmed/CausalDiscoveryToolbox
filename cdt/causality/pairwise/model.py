@@ -10,9 +10,12 @@ from ...utils.Settings import SETTINGS
 
 
 class PairwiseModel(object):
-    """Base class for all pairwise causal inference models
+    """Base class for all graph causal inference models.
 
-    Usage for undirected/directed graphs and CEPC df format.
+    Usage for undirected graphs and raw data. All causal discovery
+    models out of observational data base themselves on this class. Its main
+    feature is the predict function that executes a function according to the
+    given arguments.
     """
 
     def __init__(self):
@@ -20,7 +23,23 @@ class PairwiseModel(object):
         super(PairwiseModel, self).__init__()
 
     def predict(self, x, *args, **kwargs):
-        """Generic predict method."""
+        """Generic predict method.
+
+        Chooses to execute according to the type of the arguments given.
+
+        1. If ``args[0]`` is a ``networkx.Graph``, then ``self.orient_graph`` is executed.
+        2. If ``x`` is a ``pandas.DataFrame``, then ``self.predict_dataset`` is executed.
+        3. If ``x`` is a ``pandas.Series``, then ``self.predict_proba`` is executed.
+
+        Args:
+            df_data (pandas.DataFrame): DataFrame containing the observational data.
+            args[0] (networkx.DiGraph or networkx.Graph or None): Prior knowledge on the causal graph.
+
+        .. warning::
+           Requirement : Name of the nodes in the graph must correspond to the
+           name of the variables in df_data
+
+        """
         if len(args) > 0:
             if type(args[0]) == nx.Graph or type(args[0]) == nx.DiGraph:
                 return self.orient_graph(x, *args, **kwargs)
@@ -32,25 +51,18 @@ class PairwiseModel(object):
             return self.predict_proba(x.iloc[0], x.iloc[1], *args, **kwargs)
 
     def predict_proba(self, a, b, idx=0, **kwargs):
-        """Prediction method for pairwise causal inference.
+        """Predict the causal direction of a pair of variables.
 
-        predict_proba is meant to be overridden in all subclasses
-
-        :param a: Variable 1
-        :param b: Variable 2
-        :return: probability (Value : 1 if a->b and -1 if b->a)
-        :rtype: float
+        .. note::
+           Not implemented: will be implemented by the model classes.
         """
         raise NotImplementedError
 
     def predict_dataset(self, x, **kwargs):
-        """Causal prediction of a pairwise dataset (x,y).
+        """Predict the causal direction of all pairs in the dataset.
 
-        :param x: Pairwise dataset
-        :param printout: print regularly predictions
-        :type x: cepc_df format
-        :return: predictions probabilities
-        :rtype: list
+        .. note::
+           Not implemented: will be implemented by the model classes.
         """
         printout = kwargs.get("printout", None)
         pred = []
@@ -69,14 +81,10 @@ class PairwiseModel(object):
         return pred
 
     def orient_graph(self, df_data, graph, printout=None, nb_runs=6, **kwargs):
-        """Orient an undirected graph using the pairwise method defined by the subclass.
+        """Orient an undirected graph.
 
-        Requirement : Name of the nodes in the graph correspond to name of the variables in df_data
-        :param df_data: dataset
-        :param umg: UndirectedGraph
-        :param printout: print regularly predictions
-        :return: Directed graph w/ weights
-        :rtype: DirectedGraph
+        .. note::
+           Not implemented: will be implemented by the model classes.
         """
         if type(graph) == nx.DiGraph:
             edges = [a for a in list(graph.edges()) if (a[1], a[0]) in list(graph.edges())]

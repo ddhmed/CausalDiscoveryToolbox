@@ -7,8 +7,44 @@ cdt.causality
 cdt.causality.pairwise
 ----------------------
 .. automodule:: cdt.causality.pairwise
+.. currentmodule:: cdt.causality.pairwise.model
+.. autoclass:: PairwiseModel
 
-ToDo
+.. currentmodule:: cdt.causality.pairwise
+
+:hidden:`ANM`
+~~~~~~~~~~~~~
+.. automodule:: cdt.causality.pairwise.ANM
+
+:hidden:`Bivariate fit`
+~~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: cdt.causality.pairwise.BivariateFit
+
+:hidden:`CDS`
+~~~~~~~~~~~~~
+.. automodule:: cdt.causality.pairwise.CDS
+
+:hidden:`GNN`
+~~~~~~~~~~~~~
+.. automodule:: cdt.causality.pairwise.GNN
+
+:hidden:`IGCI`
+~~~~~~~~~~~~~~~~~~
+.. automodule:: cdt.causality.pairwise.IGCI
+
+:hidden:`Jarfo`
+~~~~~~~~~~~~~~~~~~
+.. automodule:: cdt.causality.pairwise.Jarfo
+
+:hidden:`NCC`
+~~~~~~~~~~~~~
+.. automodule:: cdt.causality.pairwise.RCC
+
+:hidden:`RCC`
+~~~~~~~~~~~~~
+.. automodule:: cdt.causality.pairwise.RCC
+
+
 
 cdt.causality.graph
 -------------------
@@ -17,6 +53,7 @@ cdt.causality.graph
 .. currentmodule:: cdt.causality.graph.model
 .. autoclass:: GraphModel
    :members:
+
 
 :hidden:`bnlearn-based models`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
