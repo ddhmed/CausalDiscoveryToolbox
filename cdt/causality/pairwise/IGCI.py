@@ -6,6 +6,28 @@ Proceedings of the 26th Annual Conference on Uncertainty in Artificial  Intellig
 http://event.cwi.nl/uai2010/papers/UAI2010_0121.pdf
 
 Adapted by Diviyan Kalainathan
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 
 from .model import PairwiseModel
@@ -58,36 +80,72 @@ def integral_approx_estimator(x, y):
 
 
 class IGCI(PairwiseModel):
-    """Information Geometric Causal Inference (IGCI) model.
+    """IGCI model.
+
+    **Description:** Information Geometric Causal Inference is a pairwise causal
+    discovery model model considering the case of minimal noise :math:`Y=f(X)`,
+    with :math:`f` invertible and leverages assymetries to predict causal
+    directions.
+
+    **Data Type:** Continuous
+
+    **Assumptions:** Only the case of invertible functions only is considered, as the
+    prediction would be trivial otherwise if the noise is minimal.
 
     .. note::
        P. Daniušis, D. Janzing, J. Mooij, J. Zscheischler, B. Steudel,
        K. Zhang, B. Schölkopf:  Inferring deterministic causal relations.
        Proceedings of the 26th Annual Conference on Uncertainty in Artificial  Intelligence (UAI-2010).
        http://event.cwi.nl/uai2010/papers/UAI2010_0121.pdf
+
+    Example:
+        >>> from cdt.causality.pairwise import IGCI
+        >>> import networkx as nx
+        >>> import matplotlib.pyplot as plt
+        >>> from cdt.data import load_dataset
+        >>> data, labels = load_dataset('tuebingen')
+        >>> obj = IGCI()
+        >>>
+        >>> # This example uses the predict() method
+        >>> output = obj.predict(data)
+        >>>
+        >>> # This example uses the orient_graph() method. The dataset used
+        >>> # can be loaded using the cdt.data module
+        >>> data, graph = load_dataset("sachs")
+        >>> output = obj.orient_graph(data, nx.Graph(graph))
+        >>>
+        >>> #To view the directed graph run the following command
+        >>> nx.draw_networkx(output, font_size=8)
+        >>> plt.show()
     """
 
     def __init__(self):
         """.Initialize the IGCI model."""
         super(IGCI, self).__init__()
 
-    def predict_proba(self, a, b, **kwargs):
+    def predict_proba(self, dataset, ref_measure='gaussian',
+                      estimator='entropy', **kwargs):
         """Evaluate a pair using the IGCI model.
 
-        :param a: Input variable 1D
-        :param b: Input variable 1D
-        :param kwargs: {refMeasure: Scaling method (gaussian, integral or None),
-                        estimator: method used to evaluate the pairs (entropy or integral)}
-        :return: Return value of the IGCI model >0 if a->b otherwise if return <0
+        Args:
+            dataset (tuple): Couple of np.ndarray variables to classify
+            refMeasure (str): Scaling method (gaussian (default),
+               integral or None)
+            estimator (str): method used to evaluate the pairs (entropy (default)
+               or integral)}
+
+        Returns:
+            float: value of the IGCI model >0 if a->b otherwise if return <0
         """
-        estimators = {'entropy': lambda x, y: eval_entropy(y) - eval_entropy(x), 'integral': integral_approx_estimator}
+        a, b = dataset
+        estimators = {'entropy': lambda x, y: eval_entropy(x) - eval_entropy(y), 'integral': integral_approx_estimator}
         ref_measures = {'gaussian': lambda x: standard_scale.fit_transform(x.reshape((-1, 1))),
                         'uniform': lambda x: min_max_scale.fit_transform(x.reshape((-1, 1))), 'None': lambda x: x}
 
-        ref_measure = ref_measures[kwargs.get('refMeasure', 'gaussian')]
-        estimator = estimators[kwargs.get('estimator', 'entropy')]
+        ref_measure = ref_measures[ref_measure]
+        _estimator = estimators[estimator]
 
         a = ref_measure(a)
         b = ref_measure(b)
 
-        return estimator(a, b)
+        return _estimator(a, b)

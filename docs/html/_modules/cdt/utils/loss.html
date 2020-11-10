@@ -1,54 +1,65 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cdt.utils.loss &mdash; Causal Discovery Toolbox 0.2.5 documentation</title>
+  <title>cdt.utils.loss &mdash; Causal Discovery Toolbox 0.5.21 documentation</title>
   
 
   
-  
-  
-  
-
-  
-
-  
-  
-    
-
-  
-
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
 
   
-  <script src="../../../_static/js/modernizr.min.js"></script>
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.png"/>
+  
+  
+  
 
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"extensions": ["tex2jax.js"], "jax": ["input/TeX", "output/HTML-CSS"], "tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "processEscapes": true}, "HTML-CSS": {"fonts": ["TeX"]}})</script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
-            <a href="../../../index.html" class="icon icon-home"> Causal Discovery Toolbox
+            <a href="../../../index.html">
           
 
+          
+            
+            <img src="../../../_static/banner.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -56,7 +67,7 @@
             
             
               <div class="version">
-                0.2
+                0.5.21
               </div>
             
           
@@ -73,6 +84,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -81,20 +93,24 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Causal Discovery Toolbox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Causal Discovery Toolbox Documentation</a></li>
 </ul>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Get started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../causality.html">cdt.causality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../independence.html">cdt.independence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../generators.html">cdt.generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">cdt.data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">cdt.utils</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../metrics.html">cdt.metrics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../settings.html">Toolbox Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models.html">PyTorch Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer.html">Developer Documentation</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -133,7 +149,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
@@ -153,10 +169,33 @@
            <div itemprop="articleBody">
             
   <h1>Source code for cdt.utils.loss</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Pytorch implementation of Losses and tools.&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">.Settings</span> <span class="k">import</span> <span class="n">SETTINGS</span>
+<span></span><span class="sd">&quot;&quot;&quot;Pytorch implementation of Losses and tools.</span>
+
+<span class="sd">.. MIT License</span>
+<span class="sd">..</span>
+<span class="sd">.. Copyright (c) 2018 Diviyan Kalainathan</span>
+<span class="sd">..</span>
+<span class="sd">.. Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="sd">.. of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="sd">.. in the Software without restriction, including without limitation the rights</span>
+<span class="sd">.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="sd">.. copies of the Software, and to permit persons to whom the Software is</span>
+<span class="sd">.. furnished to do so, subject to the following conditions:</span>
+<span class="sd">..</span>
+<span class="sd">.. The above copyright notice and this permission notice shall be included in all</span>
+<span class="sd">.. copies or substantial portions of the Software.</span>
+<span class="sd">..</span>
+<span class="sd">.. THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="sd">.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="sd">.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="sd">.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="sd">.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="sd">.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="sd">.. SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.Settings</span> <span class="kn">import</span> <span class="n">SETTINGS</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">ttest_ind</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">ttest_ind</span>
 <span class="kn">import</span> <span class="nn">torch</span> <span class="k">as</span> <span class="nn">th</span>
 
 
@@ -167,14 +206,22 @@
 <span class="sd">        max_iter (int): Maximum number of iterations authorized</span>
 <span class="sd">        runs_per_iter (int): Number of runs performed per iteration</span>
 <span class="sd">        threshold (float): p-value threshold, under which the loop is stopped.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from cdt.utils.loss import TTestCriterion</span>
+<span class="sd">        &gt;&gt;&gt; l = TTestCriterion(50,5)</span>
+<span class="sd">        &gt;&gt;&gt; x, y = [], []</span>
+<span class="sd">        &gt;&gt;&gt; while l.loop(x, y):</span>
+<span class="sd">            ...     # compute loop and update results in x, y</span>
+<span class="sd">        &gt;&gt;&gt; x, y  # Two lists with significant difference in score</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">,</span> <span class="n">runs_per_iter</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">,</span> <span class="n">runs_per_iter</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">TTestCriterion</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runs_per_iter</span> <span class="o">=</span> <span class="n">runs_per_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">p_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 
 <div class="viewcode-block" id="TTestCriterion.loop"><a class="viewcode-back" href="../../../utils.html#cdt.utils.loss.TTestCriterion.loop">[docs]</a>    <span class="k">def</span> <span class="nf">loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xy</span><span class="p">,</span> <span class="n">yx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Tests the loop condition based on the new results and the</span>
@@ -187,19 +234,19 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            bool: True if the loop has to continue, False otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">xy</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">iter</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs_per_iter</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iter</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs_per_iter</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="n">t_test</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_value</span> <span class="o">=</span> <span class="n">ttest_ind</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="n">yx</span><span class="p">,</span> <span class="n">equal_var</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_value</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iter</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs_per_iter</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div></div>
 
 
 <div class="viewcode-block" id="MMDloss"><a class="viewcode-back" href="../../../utils.html#cdt.utils.loss.MMDloss">[docs]</a><span class="k">class</span> <span class="nc">MMDloss</span><span class="p">(</span><span class="n">th</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;&quot;**[torch.nn.Module]** Maximum Mean Discrepancy Metric to compare</span>
+    <span class="sd">&quot;&quot;&quot;**[torch.nn.Module]** Maximum Mean Discrepancy Metric to compare</span>
 <span class="sd">    empirical distributions.</span>
 
 <span class="sd">    The MMD score is defined by:</span>
@@ -237,20 +284,28 @@
 <span class="sd">        Ref: Gretton, A., Borgwardt, K. M., Rasch, M. J., Schölkopf, </span>
 <span class="sd">        B., &amp; Smola, A. (2012). A kernel two-sample test.</span>
 <span class="sd">        Journal of Machine Learning Research, 13(Mar), 723-773.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from cdt.utils.loss import MMDloss</span>
+<span class="sd">        &gt;&gt;&gt; import torch as th</span>
+<span class="sd">        &gt;&gt;&gt; x, y = th.randn(100,10), th.randn(100, 10)</span>
+<span class="sd">        &gt;&gt;&gt; mmd = MMDloss(100)  # 100 is the batch size</span>
+<span class="sd">        &gt;&gt;&gt; mmd(x, y)</span>
+<span class="sd">        0.0766</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">,</span> <span class="n">bandwidths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">,</span> <span class="n">bandwidths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Init the model.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MMDloss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="n">device</span> <span class="o">=</span> <span class="n">SETTINGS</span><span class="o">.</span><span class="n">get_default</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">bandwidths</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bandwidths</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+            <span class="n">bandwidths</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">bandwidths</span> <span class="o">=</span> <span class="n">bandwidths</span>
+            <span class="n">bandwidths</span> <span class="o">=</span> <span class="n">bandwidths</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">th</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">input_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">input_size</span><span class="p">,</span>
                     <span class="n">th</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">input_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="o">-</span><span class="n">input_size</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">S</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span> <span class="o">@</span> <span class="n">s</span><span class="o">.</span><span class="n">t</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;bandwidths&#39;</span><span class="p">,</span> <span class="n">bandwidths</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">s</span> <span class="o">@</span> <span class="n">s</span><span class="o">.</span><span class="n">t</span><span class="p">()))</span>
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
@@ -261,13 +316,11 @@
         <span class="c1"># X2 = XX.diag().unsqueeze(0)</span>
         <span class="n">X2</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span> <span class="o">*</span> <span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="c1"># print(X2.shape)</span>
-        <span class="c1"># raise ValueError</span>
         <span class="c1"># exponent entries of the RBF kernel (without the sigma) for each</span>
         <span class="c1"># combination of the rows in &#39;X&#39;</span>
         <span class="n">exponent</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">XX</span> <span class="o">+</span> <span class="n">X2</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">XX</span><span class="p">)</span> <span class="o">+</span> <span class="n">X2</span><span class="o">.</span><span class="n">t</span><span class="p">()</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">XX</span><span class="p">)</span>
-
-        <span class="n">lossMMD</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">S</span> <span class="o">*</span><span class="p">(</span><span class="n">exponent</span> <span class="o">*</span> <span class="o">-</span><span class="n">bandwidth</span><span class="p">)</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span> 
-                              <span class="k">for</span> <span class="n">bandwidth</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bandwidths</span><span class="p">]))</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">exponent</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bandwidths</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">bandwidths</span>
+        <span class="n">lossMMD</span> <span class="o">=</span> <span class="n">th</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">b</span><span class="o">.</span><span class="n">exp</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">lossMMD</span></div>
 
 
@@ -296,9 +349,16 @@
 <span class="sd">    Output: mml</span>
 <span class="sd">        + **mml** is the output of the forward pass and is differenciable. </span>
 <span class="sd">          torch.Tensor of shape `(1)`</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from cdt.utils.loss import MomentMatchingLoss</span>
+<span class="sd">        &gt;&gt;&gt; import torch as th</span>
+<span class="sd">        &gt;&gt;&gt; x, y = th.randn(100,10), th.randn(100, 10)</span>
+<span class="sd">        &gt;&gt;&gt; mml = MomentMatchingLoss(4)</span>
+<span class="sd">        &gt;&gt;&gt; mml(x, y)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_moments</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_moments</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize the loss model.</span>
 
 <span class="sd">        :param n_moments: number of moments</span>
@@ -321,6 +381,36 @@
             <span class="n">loss</span><span class="o">.</span><span class="n">add_</span><span class="p">(</span><span class="n">th</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">mk_pred</span> <span class="o">-</span> <span class="n">mk_tar</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>  <span class="c1"># L2</span>
 
         <span class="k">return</span> <span class="n">loss</span></div>
+
+
+<div class="viewcode-block" id="notears_constr"><a class="viewcode-back" href="../../../utils.html#cdt.utils.loss.notears_constr">[docs]</a><span class="k">def</span> <span class="nf">notears_constr</span><span class="p">(</span><span class="n">adj_m</span><span class="p">,</span> <span class="n">max_pow</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;No Tears constraint for binary adjacency matrixes. Represents a</span>
+<span class="sd">    differenciable constraint to converge towards a DAG.</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">       If adj_m is non binary: Feed adj_m * adj_m as input (Hadamard product).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        adj_m (array-like): Adjacency matrix of the graph</span>
+<span class="sd">        max_pow (int): maximum value to which the infinite sum is to be computed.</span>
+<span class="sd">           defaults to the shape of the adjacency_matrix</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        np.ndarray or torch.Tensor: Scalar value of the loss with the type</span>
+<span class="sd">            depending on the input.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">       Zheng, X., Aragam, B., Ravikumar, P. K., &amp; Xing, E. P. (2018). DAGs with</span>
+<span class="sd">       NO TEARS: Continuous Optimization for Structure Learning. In Advances in</span>
+<span class="sd">       Neural Information Processing Systems (pp. 9472-9483).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m_exp</span> <span class="o">=</span> <span class="p">[</span><span class="n">adj_m</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">max_pow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">max_pow</span> <span class="o">=</span> <span class="n">adj_m</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">while</span><span class="p">(</span><span class="n">m_exp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">m_exp</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">max_pow</span><span class="p">):</span>
+        <span class="n">m_exp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m_exp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">@</span> <span class="n">adj_m</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">m_exp</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">diag</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">m_exp</span><span class="p">)])</span></div>
 </pre></div>
 
            </div>
@@ -333,11 +423,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2018, Diviyan Kalainathan, Olivier Goudet
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -349,28 +447,16 @@
   </div>
   
 
-
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"extensions": ["tex2jax.js"], "jax": ["input/TeX", "output/HTML-CSS"], "tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "displayMath": [["$$", "$$"], ["\\[", "\\]"]], "processEscapes": true}, "HTML-CSS": {"fonts": ["TeX"]}})</script>
-    
-
-  
-
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

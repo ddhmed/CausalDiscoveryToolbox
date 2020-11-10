@@ -510,7 +510,9 @@ def correlation(x, tx, y, ty):
             y = to_numerical(y, x)
         x = (x - np.mean(x)) / np.std(x)
         y = (y - np.mean(y)) / np.std(y)
-        r = pearsonr(x, y)[0]
+        r = np.corrcoef(x, y)[0][1]
+        if np.isnan(r):
+            return 0
     return r
 
 
@@ -782,9 +784,9 @@ def calculate_method(args):
     return method(*margs)
 
 
-def extract_features(X, features=all_features, y=None, n_jobs=-1):
-    if n_jobs != 1:
-        pool = Pool(n_jobs if n_jobs != -1 else None)
+def extract_features(X, features=all_features, y=None, njobs=-1):
+    if njobs != 1:
+        pool = Pool(njobs if njobs != -1 else None)
         pmap = pool.map
     else:
         pmap = map

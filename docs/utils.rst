@@ -39,3 +39,28 @@ cdt.utils.loss
 
 .. autoclass:: TTestCriterion
    :members:
+
+.. autofunction:: notears_constr
+
+cdt.utils.parallel
+------------------
+.. automodule:: cdt.utils.parallel
+
+.. autofunction:: parallel_run
+
+.. autofunction:: parallel_run_generator
+
+cdt.utils.torch
+---------------
+.. automodule:: cdt.utils.torch
+
+.. autoclass:: ChannelBatchNorm1d
+   :members:
+
+.. autoclass:: Linear3D
+   :members:
+
+.. autofunction:: gumbel_softmax
+
+.. autoclass:: MatrixSampler
+   :members:

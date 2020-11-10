@@ -3,6 +3,28 @@ Conditional Distribution Similarity Statistic
 Used to infer causal directions
 Author : José A.R. Fonollosa
 Ref : Fonollosa, José AR, "Conditional distribution variability measures for causality detection", 2016.
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 
 import numpy as np
@@ -64,14 +86,41 @@ def discretized_sequences(x, y, ffactor=3, maxdev=3):
 
 
 class CDS(PairwiseModel):
-    """
-    Conditional Distribution Similarity Statistic
+    """Conditional Distribution Similarity Statistic
 
-    Measuring the std. of the rescaled values of y (resp. x) after binning in the x (resp. y) direction.
-    The lower the std. the more likely the pair to be x->y (resp. y->x).
+    **Description:** The Conditional Distribution Similarity Statistic measures the
+    std. of the rescaled values of y (resp. x) after binning in the x (resp. y) direction.
+    The lower the std. the more likely the pair to be x->y (resp. y->x). It is
+    a single feature of the Jarfo model.
+
+    **Data Type**: Continuous and Discrete
+
+    **Assumptions**: This approach is a statistical feature of the
+    joint distribution of the data mesuring the variance of the marginals, after
+    conditioning on bins.
 
     .. note::
        Ref : Fonollosa, José AR, "Conditional distribution variability measures for causality detection", 2016.
+
+    Example:
+        >>> from cdt.causality.pairwise import CDS
+        >>> import networkx as nx
+        >>> import matplotlib.pyplot as plt
+        >>> from cdt.data import load_dataset
+        >>> data, labels = load_dataset('tuebingen')
+        >>> obj = CDS()
+        >>>
+        >>> # This example uses the predict() method
+        >>> output = obj.predict(data)
+        >>>
+        >>> # This example uses the orient_graph() method. The dataset used
+        >>> # can be loaded using the cdt.data module
+        >>> data, graph = load_dataset("sachs")
+        >>> output = obj.orient_graph(data, nx.Graph(graph))
+        >>>
+        >>> #To view the directed graph run the following command
+        >>> nx.draw_networkx(output, font_size=8)
+        >>> plt.show()
     """
     def __init__(self, ffactor=2, maxdev=3, minc=12):
         super(CDS, self).__init__()
@@ -79,16 +128,16 @@ class CDS(PairwiseModel):
         self.maxdev = maxdev
         self.minc = minc
 
-    def predict_proba(self, a, b, **kwargs):
+    def predict_proba(self, dataset, **kwargs):
         """ Infer causal relationships between 2 variables using the CDS statistic
 
         Args:
-            a (numpy.ndarray): Variable 1
-            b (numpy.ndarray): Variable 2
+            dataset (tuple): Couple of np.ndarray variables to classify
 
         Returns:
             float: Causation score (Value : 1 if a->b and -1 if b->a)
         """
+        a, b = dataset
         return self.cds_score(b, a) - self.cds_score(a, b)
 
     def cds_score(self, x_te, y_te):

@@ -2,12 +2,36 @@
 
 Imported from the Pcalg package.
 Author: Diviyan Kalainathan
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 import os
 import uuid
 import warnings
 import networkx as nx
+from pathlib import Path
 from shutil import rmtree
+from tempfile import gettempdir
 from .model import GraphModel
 from pandas import read_csv
 from ...utils.R import RPackages, launch_R_script
@@ -23,10 +47,26 @@ warnings.formatwarning = message_warning
 
 
 class LiNGAM(GraphModel):
-    r"""LiNGAM algorithm.
-    
+    r"""LiNGAM algorithm **[R model]**.
+
+
+    **Description:** Linear Non-Gaussian Acyclic model. LiNGAM handles linear
+    structural equation models, where each variable is modeled as
+    :math:`X_j = \sum_k \alpha_k P_a^{k}(X_j) + E_j,  j \in [1,d]`,
+    with  :math:`P_a^{k}(X_j)` the :math:`k`-th parent of
+    :math:`X_j` and :math:`\alpha_k` a real scalar.
+
+    **Required R packages**: pcalg
+
+    **Data Type:** Continuous
+
+    **Assumptions:** The underlying causal model is supposed to be composed of
+    linear mechanisms and non-gaussian data. Under those assumptions, it is
+    shown that causal structure is fully identifiable (even inside the Markov
+    equivalence class).
+
     Args:
-        verbose (bool): Sets the verbosity of the algorithm. Defaults to 
+        verbose (bool): Sets the verbosity of the algorithm. Defaults to
            `cdt.SETTINGS.verbose`
 
     .. note::
@@ -37,6 +77,13 @@ class LiNGAM(GraphModel):
     .. warning::
        This implementation of LiNGAM does not support starting with a graph.
 
+    Example:
+        >>> import networkx as nx
+        >>> from cdt.causality.graph import LiNGAM
+        >>> from cdt.data import load_dataset
+        >>> data, graph = load_dataset("sachs")
+        >>> obj = LiNGAM()
+        >>> output = obj.predict(data)
     """
 
     def __init__(self, verbose=False):
@@ -47,9 +94,9 @@ class LiNGAM(GraphModel):
         super(LiNGAM, self).__init__()
 
         self.arguments = {'{FOLDER}': '/tmp/cdt_LiNGAM/',
-                          '{FILE}': 'data.csv',
+                          '{FILE}': os.sep + 'data.csv',
                           '{VERBOSE}': 'FALSE',
-                          '{OUTPUT}': 'result.csv'}
+                          '{OUTPUT}': os.sep + 'result.csv'}
         self.verbose = SETTINGS.get_default(verbose=verbose)
 
     def orient_undirected_graph(self, data, graph):
@@ -68,7 +115,7 @@ class LiNGAM(GraphModel):
             data (pandas.DataFrame): DataFrame containing the data
 
         Returns:
-            networkx.DiGraph: Solution given by the LiNGAM algorithm.
+            networkx.DiGraph: Prediction given by the LiNGAM algorithm.
 
         """
         # Building setup w/ arguments.
@@ -81,23 +128,23 @@ class LiNGAM(GraphModel):
     def _run_LiNGAM(self, data, fixedGaps=None, verbose=True):
         """Setting up and running LiNGAM with all arguments."""
         # Run LiNGAM
-        id = str(uuid.uuid4())
-        os.makedirs('/tmp/cdt_LiNGAM' + id + '/')
-        self.arguments['{FOLDER}'] = '/tmp/cdt_LiNGAM' + id + '/'
+        self.arguments['{FOLDER}'] = Path('{0!s}/cdt_lingam_{1!s}/'.format(gettempdir(), uuid.uuid4()))
+        run_dir = self.arguments['{FOLDER}']
+        os.makedirs(run_dir, exist_ok=True)
 
         def retrieve_result():
-            return read_csv('/tmp/cdt_LiNGAM' + id + '/result.csv', delimiter=',').values
+            return read_csv(Path('{}/result.csv'.format(run_dir)), delimiter=',').values
 
         try:
-            data.to_csv('/tmp/cdt_LiNGAM' + id + '/data.csv', header=False, index=False)
-            lingam_result = launch_R_script("{}/R_templates/lingam.R".format(os.path.dirname(os.path.realpath(__file__))),
+            data.to_csv(Path('{}/data.csv'.format(run_dir)), header=False, index=False)
+            lingam_result = launch_R_script(Path("{}/R_templates/lingam.R".format(os.path.dirname(os.path.realpath(__file__)))),
                                             self.arguments, output_function=retrieve_result, verbose=verbose)
         # Cleanup
         except Exception as e:
-            rmtree('/tmp/cdt_LiNGAM' + id + '')
+            rmtree(run_dir)
             raise e
         except KeyboardInterrupt:
-            rmtree('/tmp/cdt_LiNGAM' + id + '/')
+            rmtree(run_dir)
             raise KeyboardInterrupt
-        rmtree('/tmp/cdt_LiNGAM' + id + '')
+        rmtree(run_dir)
         return lingam_result

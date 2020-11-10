@@ -5,11 +5,11 @@ import pandas as pd
 import networkx as nx
 from cdt import SETTINGS
 from cdt.independence.graph import (Glasso, ARD, DecisionTreeRegression,
-                                    LinearSVRL2,
-                                    RFECVLinearSVR, RRelief)
+                                    LinearSVRL2, HSICLasso,
+                                    RFECVLinearSVR)
 from cdt.utils.graph import remove_indirect_links
 
-SETTINGS.NB_JOBS = 1
+SETTINGS.NJOBS = 1
 
 
 def init():
@@ -19,8 +19,8 @@ def init():
 def test_statistical_methods():
     data = init()
     for method in [Glasso, ARD, DecisionTreeRegression,
-                   LinearSVRL2,
-                   RFECVLinearSVR, RRelief]:
+                   LinearSVRL2, HSICLasso,
+                   RFECVLinearSVR]:
         model = method()
         # print(method)
         assert isinstance(model.predict(data), nx.Graph)

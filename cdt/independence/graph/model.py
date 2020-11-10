@@ -2,6 +2,28 @@
 
 Author: Diviyan Kalainathan
 Date : 7/06/2017
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 import networkx as nx
 import numpy as np
@@ -90,14 +112,16 @@ class FeatureSelectionModel(GraphSkeletonModel):
         Returns:
             networkx.Graph: predicted skeleton of the graph.
         """
-        nb_jobs = kwargs.get("nb_jobs", SETTINGS.NB_JOBS)
+        njobs = kwargs.get("njobs", SETTINGS.NJOBS)
         list_nodes = list(df_data.columns.values)
-        if nb_jobs != 1:
-            result_feature_selection = Parallel(n_jobs=nb_jobs)(delayed(self.run_feature_selection)
+        if njobs != 1:
+            result_feature_selection = Parallel(n_jobs=njobs)(delayed(self.run_feature_selection)
                                                                 (df_data, node, idx, **kwargs)
                                                                 for idx, node in enumerate(list_nodes))
         else:
-            result_feature_selection = [self.run_feature_selection(df_data, node, idx, **kwargs) for idx, node in enumerate(list_nodes)]
+            result_feature_selection = [self.run_feature_selection(df_data, node,
+                                                                   idx, **kwargs)
+                                        for idx, node in enumerate(list_nodes)]
         for idx, i in enumerate(result_feature_selection):
             try:
                 i.insert(idx, 0)
@@ -119,3 +143,4 @@ class FeatureSelectionModel(GraphSkeletonModel):
                 graph.add_node(node)
         return graph
 
+from .FSGNN import FSGNN_model

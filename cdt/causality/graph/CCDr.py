@@ -2,12 +2,36 @@
 
 Imported from the Pcalg package.
 Author: Diviyan Kalainathan
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 import os
 import uuid
 import warnings
 import networkx as nx
+from pathlib import Path
 from shutil import rmtree
+from tempfile import gettempdir
 from .model import GraphModel
 from pandas import read_csv
 from ...utils.Settings import SETTINGS
@@ -23,16 +47,41 @@ warnings.formatwarning = message_warning
 
 
 class CCDr(GraphModel):
-    r"""CCDr algorithm.
-    Concave penalized Coordinate Descent with reparametrization) structure
+    r"""CCDr algorithm **[R model]**.
+
+    **Description:** Concave penalized Coordinate Descent with reparametrization) structure
     learning algorithm as described in Aragam and Zhou (2015). This is a fast,
     score based method for learning Bayesian networks that uses sparse
     regularization and block-cyclic coordinate descent.
+
+    **Required R packages**: sparsebn
+
+    **Data Type:** Continuous
+
+    **Assumptions:** This model does not restrict or prune the search space in
+    any way, does not assume faithfulness, does not require a known variable
+    ordering, works on observational data (i.e. without experimental
+    interventions), works effectively in high dimensions, and is capable of
+    handling graphs with several thousand variables. The output of this model
+    is a DAG.
 
     Imported from the 'sparsebn' package.
 
     .. warning::
        This implementation of CCDr does not support starting with a graph.
+
+    .. note::
+       ref: Aragam, B., & Zhou, Q. (2015). Concave penalized estimation of
+       sparse Gaussian Bayesian networks. Journal of Machine Learning Research,
+       16, 2273-2328.
+
+    Example:
+        >>> import networkx as nx
+        >>> from cdt.causality.graph import CCDr
+        >>> from cdt.data import load_dataset
+        >>> data, graph = load_dataset("sachs")
+        >>> obj = CCCDr()
+        >>> output = obj.predict(data)
     """
 
     def __init__(self, verbose=None):
@@ -42,9 +91,9 @@ class CCDr(GraphModel):
 
         super(CCDr, self).__init__()
         self.arguments = {'{FOLDER}': '/tmp/cdt_CCDR/',
-                          '{FILE}': 'data.csv',
+                          '{FILE}': os.sep + 'data.csv',
                           '{VERBOSE}': 'FALSE',
-                          '{OUTPUT}': 'result.csv'}
+                          '{OUTPUT}': os.sep + 'result.csv'}
         # ToDo self.alpha = 0
         self.verbose = SETTINGS.get_default(verbose=verbose)
 
@@ -76,23 +125,23 @@ class CCDr(GraphModel):
     def _run_ccdr(self, data, fixedGaps=None, verbose=True):
         """Setting up and running CCDr with all arguments."""
         # Run CCDr
-        id = str(uuid.uuid4())
-        os.makedirs('/tmp/cdt_CCDR' + id + '/')
-        self.arguments['{FOLDER}'] = '/tmp/cdt_CCDR' + id + '/'
+        self.arguments['{FOLDER}'] = Path('{0!s}/cdt_ccdr_{1!s}/'.format(gettempdir(), uuid.uuid4()))
+        run_dir = self.arguments['{FOLDER}']
+        os.makedirs(run_dir, exist_ok=True)
 
         def retrieve_result():
-            return read_csv('/tmp/cdt_CCDR' + id + '/result.csv', delimiter=',').values
+            return read_csv(Path('{}/result.csv'.format(run_dir)), delimiter=',').values
 
         try:
-            data.to_csv('/tmp/cdt_CCDR' + id + '/data.csv', header=False, index=False)
-            ccdr_result = launch_R_script("{}/R_templates/CCDr.R".format(os.path.dirname(os.path.realpath(__file__))),
+            data.to_csv(Path('{}/data.csv'.format(run_dir)), header=False, index=False)
+            ccdr_result = launch_R_script(Path("{}/R_templates/CCDr.R".format(os.path.dirname(os.path.realpath(__file__)))),
                                          self.arguments, output_function=retrieve_result, verbose=verbose)
         # Cleanup
         except Exception as e:
-            rmtree('/tmp/cdt_CCDR' + id + '')
+            rmtree(run_dir)
             raise e
         except KeyboardInterrupt:
-            rmtree('/tmp/cdt_CCDR' + id + '/')
+            rmtree(run_dir)
             raise KeyboardInterrupt
-        rmtree('/tmp/cdt_CCDR' + id + '')
+        rmtree(run_dir)
         return ccdr_result

@@ -2,23 +2,76 @@
 Jarfo causal inference model
 Author : José AR Fonollosa
 Ref : Fonollosa, José AR, "Conditional distribution variability measures for causality detection", 2016.
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 
 from pandas import DataFrame
 import networkx as nx
 from .Jarfo_model import train
 from .model import PairwiseModel
-from .Jarfo_model import predict
 from copy import deepcopy
 
 
 class Jarfo(PairwiseModel):
     """Jarfo model, 2nd of the Cause Effect Pairs challenge,
     1st of the Fast Causation Challenge.
-    Builds lots of features on top of a gradient boosting classifier.
+
+    **Description:** The Jarfo model is an ensemble method for causal discovery:
+    it builds lots of causally relevant features (such as ANM) with a
+    gradient boosting classifier on top.
+
+    **Data Type:** Continuous, Categorical, Mixed
+
+    **Assumptions:** This method needs a substantial amount of labelled causal
+    pairs to train itself. Its final performance depends on the training set
+    used.
 
     .. note::
        Ref : Fonollosa, José AR, "Conditional distribution variability measures for causality detection", 2016.
+
+    Example:
+        >>> from cdt.causality.pairwise import Jarfo
+        >>> import networkx as nx
+        >>> import matplotlib.pyplot as plt
+        >>> from cdt.data import load_dataset
+        >>> from sklearn.model_selection import train_test_split
+        >>> data, labels = load_dataset('tuebingen')
+        >>> X_tr, X_te, y_tr, y_te = train_test_split(data, labels, train_size=.5)
+        >>>
+        >>> obj = Jarfo()
+        >>> obj.fit(X_tr, y_tr)
+        >>> # This example uses the predict() method
+        >>> output = obj.predict(X_te)
+        >>>
+        >>> # This example uses the orient_graph() method. The dataset used
+        >>> # can be loaded using the cdt.data module
+        >>> data, graph = load_dataset("sachs")
+        >>> output = obj.orient_graph(data, nx.Graph(graph))
+        >>>
+        >>> #To view the directed graph run the following command
+        >>> nx.draw_networkx(output, font_size=8)
+        >>> plt.show()
     """
     def __init__(self):
         super(Jarfo, self).__init__()
@@ -44,6 +97,14 @@ class Jarfo(PairwiseModel):
         Returns:
             pandas.DataFrame: a Dataframe with the predictions.
         """
+
+        def predict(df, model):
+            df.columns = ["A", "B"]
+            # print(df)
+            df2 = model.extract(df)
+            # print(df2)
+            return model.predict(df2)
+
         if len(list(df.columns)) == 2:
             df.columns = ["A", "B"]
         if self.model is None:
@@ -53,19 +114,19 @@ class Jarfo(PairwiseModel):
         for idx, row in df.iterrows():
             df2 = df2.append(row, ignore_index=True)
             df2 = df2.append({'A': row["B"], 'B': row["A"]}, ignore_index=True)
-        return predict.predict(deepcopy(df2), deepcopy(self.model))[::2]
+        return predict(deepcopy(df2), deepcopy(self.model))[::2]
 
-    def predict_proba(self, a, b, idx=0, **kwargs):
+    def predict_proba(self, dataset, idx=0, **kwargs):
         """ Use Jarfo to predict the causal direction of a pair of vars.
 
         Args:
-            a (numpy.ndarray): Variable 1
-            b (numpy.ndarray): Variable 2
+            dataset (tuple): Couple of np.ndarray variables to classify
             idx (int): (optional) index number for printing purposes
 
         Returns:
             float: Causation score (Value : 1 if a->b and -1 if b->a)
         """
+        a, b = dataset
         return self.predict_dataset(DataFrame([[a, b]],
                                               columns=['A', 'B']))
 
@@ -75,7 +136,7 @@ class Jarfo(PairwiseModel):
         Args:
             df_data (pandas.DataFrame): Data
             umg (networkx.Graph): Graph to orient
-            nb_runs (int): number of times to rerun for each pair (bootstrap)
+            nruns (int): number of times to rerun for each pair (bootstrap)
             printout (str): (optional) Path to file where to save temporary results
 
         Returns:

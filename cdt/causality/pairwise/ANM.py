@@ -2,6 +2,28 @@
 
 Ref : Hoyer, Patrik O and Janzing, Dominik and Mooij, Joris M and Peters, Jonas and Schölkopf, Bernhard,
   "Nonlinear causal discovery with additive noise models", NIPS 2009
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -90,18 +112,47 @@ def normalized_hsic(x, y):
 
 
 class ANM(PairwiseModel):
-    """Additive Noise model to infer causal relationships.
+    """ANM algorithm.
 
-    Assuming that x->y then if the data follows an additive noise model, there is y=f(x)+E.
-    E being a noise variable and f a deterministic function. The causal inference bases itself on the independence
+    **Description**: The Additive noise model is one of the most popular
+    approaches for pairwise causality. It bases on the fitness of the data to
+    the additive noise model on one direction and the rejection of the model
+    on the other direction.
+
+    **Data Type**: Continuous
+
+    **Assumptions**: Assuming that :math:`x\\rightarrow y` then we suppose that
+    the data follows an additive noise model, i.e. :math:`y=f(x)+E`.
+    E being a noise variable and f a deterministic function.
+    The causal inference bases itself on the independence
     between x and e.
     It is proven that in such case if the data is generated using an additive noise model, the model would only be able
     to fit in the true causal direction.
-    Ref: https://papers.nips.cc/paper/3548-nonlinear-causal-discovery-with-additive-noise-models.pdf
 
     .. note::
        Ref : Hoyer, Patrik O and Janzing, Dominik and Mooij, Joris M and Peters, Jonas and Schölkopf, Bernhard,
        "Nonlinear causal discovery with additive noise models", NIPS 2009
+       https://papers.nips.cc/paper/3548-nonlinear-causal-discovery-with-additive-noise-models.pdf
+
+    Example:
+        >>> from cdt.causality.pairwise import ANM
+        >>> import networkx as nx
+        >>> import matplotlib.pyplot as plt
+        >>> from cdt.data import load_dataset
+        >>> data, labels = load_dataset('tuebingen')
+        >>> obj = ANM()
+        >>>
+        >>> # This example uses the predict() method
+        >>> output = obj.predict(data)
+        >>>
+        >>> # This example uses the orient_graph() method. The dataset used
+        >>> # can be loaded using the cdt.data module
+        >>> data, graph = load_dataset('sachs')
+        >>> output = obj.orient_graph(data, nx.DiGraph(graph))
+        >>>
+        >>> # To view the directed graph run the following command
+        >>> nx.draw_networkx(output, font_size=8)
+        >>> plt.show()
 
     """
 
@@ -109,16 +160,16 @@ class ANM(PairwiseModel):
         """Init the model."""
         super(ANM, self).__init__()
 
-    def predict_proba(self, a, b, **kwargs):
+    def predict_proba(self, data, **kwargs):
         """Prediction method for pairwise causal inference using the ANM model.
 
         Args:
-            a (numpy.ndarray): Variable 1
-            b (numpy.ndarray): Variable 2
+            dataset (tuple): Couple of np.ndarray variables to classify
 
         Returns:
             float: Causation score (Value : 1 if a->b and -1 if b->a)
         """
+        a, b = data
         a = scale(a).reshape((-1, 1))
         b = scale(b).reshape((-1, 1))
 

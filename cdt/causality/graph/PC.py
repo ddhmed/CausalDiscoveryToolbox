@@ -2,12 +2,36 @@
 
 Imported from the Pcalg package.
 Author = Diviyan Kalainathan
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 import os
 import uuid
 import warnings
 import networkx as nx
+from pathlib import Path
 from shutil import rmtree
+from tempfile import gettempdir
 from .model import GraphModel
 from pandas import DataFrame, read_csv
 from ...utils.Settings import SETTINGS
@@ -23,14 +47,27 @@ warnings.formatwarning = message_warning
 
 
 class PC(GraphModel):
-    """PC algorithm by C.Glymour & P.Sprites.
+    """PC algorithm **[R model]**.
+
+    **Description:** PC (Peter - Clark) One of the most famous score based
+    approaches for causal discovery. Based on conditional tests on variables
+    and sets of variables, it proved itself to be really efficient.
+
+    **Required R packages**: pcalg, kpcalg, RCIT (variant, see notes)
+
+    **Data Type:** Continuous and discrete
+
+    **Assumptions:** This approach's complexity grows rapidly with the number
+    of variables, even for quick tests. Consider graphs < 200 variables.
+    The model assumptions made by this approch mainly depend on the type of
+    test used. Kernel-based tests are also available. The prediction of PC
+    is a CPDAG (identifiability up to the Markov equivalence class).
 
     Args:
         CItest (str): Test for conditional independence.
-        method (str): Heuristic for testing CI.
         alpha (float): significance level (number in (0, 1) for the individual
            conditional independence tests.
-        njobs (int): number of processor cores to use for parallel computation. 
+        njobs (int): number of processor cores to use for parallel computation.
            Only available for method = "stable.fast" (set as default).
         verbose: if TRUE, detailed output is provided.
 
@@ -42,19 +79,29 @@ class PC(GraphModel):
         dir_method_indep (dict): contains all available heuristics for CI
            testing.
 
-    Available heuristics for conditional independence tests:
-        + gaussian: "pcalg::gaussCItest"
-        + hsic: "kpcalg::kernelCItest"
-        + discrete: "pcalg::disCItest"
-        + binary: "pcalg::binCItest"
-        + randomized: "RCIT:::CItest"
+    .. Available heuristics for conditional independence tests:
+    ..     + gaussian: "pcalg::gaussCItest"
+    ..     + hsic: "kpcalg::kernelCItest"
+    ..     + discrete: "pcalg::disCItest"
+    ..     + binary: "pcalg::binCItest"
+    ..     + randomized: "RCIT:::CItest"
+
+    .. Available CI tests:
+    ..     + dcc: "data=X, ic.method=\"dcc\""
+    ..     + hsic_gamma: "data=X, ic.method=\"hsic.gamma\""
+    ..     + hsic_perm: "data=X, ic.method=\"hsic.perm\""
+    ..     + hsic_clust: "data=X, ic.method=\"hsic.clust\""
+    ..     + corr: "C = cor(X), n = nrow(X)"
+    ..     + rcit: "data=X, ic.method=\"RCIT::RCIT\""
+    ..     + rcot: "data=X, ic.method=\"RCIT::RCoT\""
 
     Available CI tests:
-        + dcc: "data=X, ic.method=\"dcc\""
+        + binary: "data=X, ic.method=\"dcc\""
+        + discrete: "data=X, ic.method=\"dcc\""
         + hsic_gamma: "data=X, ic.method=\"hsic.gamma\""
         + hsic_perm: "data=X, ic.method=\"hsic.perm\""
-        + hsic_clus: "data=X, ic.method=\"hsic.clus\""
-        + corr: "C = cor(X), n = nrow(X)"
+        + hsic_clust: "data=X, ic.method=\"hsic.clust\""
+        + gaussian: "C = cor(X), n = nrow(X)"
         + rcit: "data=X, ic.method=\"RCIT::RCIT\""
         + rcot: "data=X, ic.method=\"RCIT::RCoT\""
 
@@ -99,10 +146,31 @@ class PC(GraphModel):
        Causal Discovery. arXiv preprint arXiv:1702.03877.
 
        Imported from the Pcalg package.
+
+       The RCIT package has been adapted to fit the `CDT` package, please use the variant available at
+       https://github.com/Diviyan-Kalainathan/RCIT
+
+    Example:
+        >>> import networkx as nx
+        >>> from cdt.causality.graph import PC
+        >>> from cdt.data import load_dataset
+        >>> data, graph = load_dataset("sachs")
+        >>> obj = PC()
+        >>> #The predict() method works without a graph, or with a
+        >>> #directed or undirected graph provided as an input
+        >>> output = obj.predict(data)    #No graph provided as an argument
+        >>>
+        >>> output = obj.predict(data, nx.Graph(graph))  #With an undirected graph
+        >>>
+        >>> output = obj.predict(data, graph)  #With a directed graph
+        >>>
+        >>> #To view the graph created, run the below commands:
+        >>> nx.draw_networkx(output, font_size=8)
+        >>> plt.show()
     """
 
     def __init__(self, CItest="gaussian", method_indep='corr', alpha=0.01,
-                 nb_jobs=None, verbose=None):
+                 njobs=None, verbose=None):
         """Init the model and its available arguments."""
         if not (RPackages.pcalg and RPackages.kpcalg and RPackages.RCIT):
             raise ImportError("R Package (k)pcalg/RCIT is not available. "
@@ -110,29 +178,33 @@ class PC(GraphModel):
                               "https://github.com/Diviyan-Kalainathan/RCIT")
 
         super(PC, self).__init__()
-        self.dir_CI_test = {"gaussian": "pcalg::gaussCItest",
-                            "hsic": "kpcalg::kernelCItest",
-                            "discrete": "pcalg::disCItest",
-                            "binary": "pcalg::binCItest",
-                            "randomized": "RCIT:::CItest"}
-        self.dir_method_indep = {'dcc': "data=X, ic.method=\"dcc\"",
+        self.dir_CI_test = {'binary': "pcalg::binCItest", # ic.method=\"dcc\"",
+                                 'discrete': "pcalg::disCItest",
+                                 'hsic_gamma': "kpcalg::kernelCItest",
+                                 'hsic_perm': "kpcalg::kernelCItest",
+                                 'hsic_clust': "kpcalg::kernelCItest",
+                                 'gaussian': "pcalg::gaussCItest",
+                                 'rcit': "RCIT:::CItest",
+                                 'rcot': "RCIT:::CItest"}
+        self.dir_method_indep = {'binary': "dm=X, adaptDF = FALSE", # ic.method=\"dcc\"",
+                                 'discrete': "dm=X, adaptDF = FALSE",
                                  'hsic_gamma': "data=X, ic.method=\"hsic.gamma\"",
                                  'hsic_perm': "data=X, ic.method=\"hsic.perm\"",
-                                 'hsic_clus': "data=X, ic.method=\"hsic.clus\"",
-                                 'corr': "C = cor(X), n = nrow(X)",
+                                 'hsic_clust': "data=X, ic.method=\"hsic.clust\"",
+                                 'gaussian': "C = cor(X), n = nrow(X)",
                                  'rcit': "data=X, ic.method=\"RCIT::RCIT\"",
                                  'rcot': "data=X, ic.method=\"RCIT::RCoT\""}
         self.CI_test = CItest
         self.method_indep = method_indep
         self.alpha = alpha
-        self.nb_jobs = SETTINGS.get_default(nb_jobs=nb_jobs)
+        self.njobs = SETTINGS.get_default(njobs=njobs)
         self.verbose = SETTINGS.get_default(verbose=verbose)
         # Define default args
-        self.arguments = {'{FOLDER}': '/tmp/cdt_pc/',
-                          '{FILE}': 'data.csv',
+        self.arguments = {'{FOLDER}': None,  # Initialized in _run_pc
+                          '{FILE}': os.sep + 'data.csv',
                           '{SKELETON}': 'FALSE',
-                          '{EDGES}': 'fixededges.csv',
-                          '{GAPS}': 'fixedgaps.csv',
+                          '{EDGES}': os.sep + 'fixededges.csv',
+                          '{GAPS}': os.sep + 'fixedgaps.csv',
                           '{CITEST}': "pcalg::gaussCItest",
                           '{METHOD_INDEP}': "C = cor(X), n = nrow(X)",
                           '{SELMAT}': 'NULL',
@@ -140,7 +212,7 @@ class PC(GraphModel):
                           '{SETOPTIONS}': 'NULL',
                           '{ALPHA}': '',
                           '{VERBOSE}': 'FALSE',
-                          '{OUTPUT}': 'result.csv'}
+                          '{OUTPUT}': os.sep + 'result.csv'}
 
     def orient_undirected_graph(self, data, graph, **kwargs):
         """Run PC on an undirected graph.
@@ -154,10 +226,10 @@ class PC(GraphModel):
         """
         # Building setup w/ arguments.
         self.arguments['{CITEST}'] = self.dir_CI_test[self.CI_test]
-        self.arguments['{METHOD_INDEP}'] = self.dir_method_indep[self.method_indep]
+        self.arguments['{METHOD_INDEP}'] = self.dir_method_indep[self.CI_test]
         self.arguments['{DIRECTED}'] = 'TRUE'
         self.arguments['{ALPHA}'] = str(self.alpha)
-        self.arguments['{NJOBS}'] = str(self.nb_jobs)
+        self.arguments['{NJOBS}'] = str(self.njobs)
         self.arguments['{VERBOSE}'] = str(self.verbose).upper()
 
         fe = DataFrame(nx.adj_matrix(graph, weight=None).todense())
@@ -197,10 +269,10 @@ class PC(GraphModel):
        """
         # Building setup w/ arguments.
         self.arguments['{CITEST}'] = self.dir_CI_test[self.CI_test]
-        self.arguments['{METHOD_INDEP}'] = self.dir_method_indep[self.method_indep]
+        self.arguments['{METHOD_INDEP}'] = self.dir_method_indep[self.CI_test]
         self.arguments['{DIRECTED}'] = 'TRUE'
         self.arguments['{ALPHA}'] = str(self.alpha)
-        self.arguments['{NJOBS}'] = str(self.nb_jobs)
+        self.arguments['{NJOBS}'] = str(self.njobs)
         self.arguments['{VERBOSE}'] = str(self.verbose).upper()
 
         results = self._run_pc(data, verbose=self.verbose)
@@ -212,43 +284,37 @@ class PC(GraphModel):
         """Setting up and running pc with all arguments."""
         # Checking coherence of arguments
         # print(self.arguments)
-        if (self.arguments['{CITEST}'] == self.dir_CI_test['hsic']
-           and self.arguments['{METHOD_INDEP}'] == self.dir_method_indep['corr']):
-            warnings.warn('Selected method for indep is unfit for the hsic test,'
-                          ' setting the hsic.gamma method.')
-            self.arguments['{METHOD_INDEP}'] = self.dir_method_indep['hsic_gamma']
-
-        elif (self.arguments['{CITEST}'] == self.dir_CI_test['gaussian']
-              and self.arguments['{METHOD_INDEP}'] != self.dir_method_indep['corr']):
-            warnings.warn('Selected method for indep is unfit for the selected test,'
-                          ' setting the classic correlation-based method.')
-            self.arguments['{METHOD_INDEP}'] = self.dir_method_indep['corr']
 
         # Run PC
-        id = str(uuid.uuid4())
-        os.makedirs('/tmp/cdt_pc' + id + '/')
-        self.arguments['{FOLDER}'] = '/tmp/cdt_pc' + id + '/'
+        self.arguments['{FOLDER}'] = Path('{0!s}/cdt_pc_{1!s}/'.format(gettempdir(), uuid.uuid4()))
+        run_dir = self.arguments['{FOLDER}']
+        os.makedirs(run_dir, exist_ok=True)
 
         def retrieve_result():
-            return read_csv('/tmp/cdt_pc' + id + '/result.csv', delimiter=',').values
+            return read_csv(Path('{}/result.csv'.format(run_dir)), delimiter=',').values
 
         try:
-            data.to_csv('/tmp/cdt_pc' + id + '/data.csv', header=False, index=False)
-            if fixedGaps is not None and fixedEdges is not None:
-                fixedGaps.to_csv('/tmp/cdt_pc' + id + '/fixedgaps.csv', index=False, header=False)
-                fixedEdges.to_csv('/tmp/cdt_pc' + id + '/fixededges.csv', index=False, header=False)
-                self.arguments['{SKELETON}'] = 'TRUE'
+            data.to_csv(Path('{}/data.csv'.format(run_dir)), header=False, index=False)
+            if fixedGaps is not None:
+                fixedGaps.to_csv(Path('{}/fixedgaps.csv'.format(run_dir)), index=False, header=False)
+                self.arguments['{E_GAPS}'] = 'TRUE'
             else:
-                self.arguments['{SKELETON}'] = 'FALSE'
+                self.arguments['{E_GAPS}'] = 'FALSE'
 
-            pc_result = launch_R_script("{}/R_templates/pc.R".format(os.path.dirname(os.path.realpath(__file__))),
+            if fixedEdges is not None:
+                fixedEdges.to_csv(Path('{}/fixededges.csv'.format(run_dir)), index=False, header=False)
+                self.arguments['{E_EDGES}'] = 'TRUE'
+            else:
+                self.arguments['{E_EDGES}'] = 'FALSE'
+
+            pc_result = launch_R_script(Path("{}/R_templates/pc.R".format(os.path.dirname(os.path.realpath(__file__)))),
                                         self.arguments, output_function=retrieve_result, verbose=verbose)
         # Cleanup
         except Exception as e:
-            rmtree('/tmp/cdt_pc' + id + '')
+            rmtree(run_dir)
             raise e
         except KeyboardInterrupt:
-            rmtree('/tmp/cdt_pc' + id + '/')
+            rmtree(run_dir)
             raise KeyboardInterrupt
-        rmtree('/tmp/cdt_pc' + id + '')
+        rmtree(run_dir)
         return pc_result

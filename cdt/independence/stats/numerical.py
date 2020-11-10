@@ -3,6 +3,27 @@
 Author: Diviyan Kalainathan
 Date: 1/06/2017
 
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
 """
 
 import numpy as np
@@ -89,6 +110,12 @@ class PearsonCorrelation(IndependenceModel):
         r(a, b) = \\frac{\\sum_{i=1}^n (a_i - \\bar{a})(b_i - \\bar{b})}
         {\\sqrt{\\sum_{i=1}^n(a_i - \\bar{a})^2 \\sqrt{\\sum_{i=1}^n(b_i - \\bar{b})^2}}}
 
+    Example:
+        >>> from cdt.independence.stats import PearsonCorrelation
+        >>> obj = PearsonCorrelation()
+        >>> a = np.array([1, 2, 1, 5])
+        >>> b = np.array([1, 3, 0, 6])
+        >>> obj.predict(a, b)
     """
     def __init__(self):
         super(PearsonCorrelation, self).__init__()
@@ -110,6 +137,13 @@ class SpearmanCorrelation(IndependenceModel):
     """Spearman correlation.
 
     Applies Pearson's correlation on the rank of the values.
+
+    Example:
+        >>> from cdt.independence.stats import SpearmanCorrelation
+        >>> obj = SpearmanCorrelation()
+        >>> a = np.array([1, 2, 1, 5])
+        >>> b = np.array([1, 3, 0, 6])
+        >>> obj.predict(a, b)
     """
     def __init__(self):
         super(SpearmanCorrelation, self).__init__()
@@ -128,7 +162,16 @@ class SpearmanCorrelation(IndependenceModel):
 
 
 class MIRegression(IndependenceModel):
-    """ Test statistic based on a mutual information regression."""
+    """ Test statistic based on a mutual information regression.
+
+        Example:
+            >>> from cdt.independence.stats import MIRegression
+            >>> obj = MIRegression()
+            >>> a = np.array([1, 2, 1, 5])
+            >>> b = np.array([1, 3, 0, 6])
+            >>> obj.predict(a, b)
+
+    """
     def __init__(self):
         super(MIRegression, self).__init__()
 
@@ -148,7 +191,15 @@ class MIRegression(IndependenceModel):
 
 
 class KendallTau(IndependenceModel):
-    """Compute Kendall's Tau."""
+    """Compute Kendall's Tau.
+
+        Example:
+            >>> from cdt.independence.stats import KendallTau
+            >>> obj = KendallTau()
+            >>> a = np.array([1, 2, 1, 5])
+            >>> b = np.array([1, 3, 0, 6])
+            >>> obj.predict(a, b)
+    """
     def __init__(self):
         super(KendallTau, self).__init__()
 
@@ -168,7 +219,15 @@ class KendallTau(IndependenceModel):
 
 
 class NormalizedHSIC(IndependenceModel):
-    """Kernel-based independence test statistic. Uses RBF kernel."""
+    """Kernel-based independence test statistic. Uses RBF kernel.
+
+    Example:
+        >>> from cdt.independence.stats import NormalizedHSIC
+        >>> obj = NormalizedHSIC()
+        >>> a = np.array([1, 2, 1, 5])
+        >>> b = np.array([1, 3, 0, 6])
+        >>> obj.predict(a, b)
+    """
     def __init__(self):
         super(NormalizedHSIC, self).__init__()
 

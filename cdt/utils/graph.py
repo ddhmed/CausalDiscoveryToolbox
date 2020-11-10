@@ -1,9 +1,32 @@
-"""Utilities for graph not included in Networkx."""
+"""Utilities for graph not included in Networkx.
+
+.. MIT License
+..
+.. Copyright (c) 2018 Diviyan Kalainathan
+..
+.. Permission is hereby granted, free of charge, to any person obtaining a copy
+.. of this software and associated documentation files (the "Software"), to deal
+.. in the Software without restriction, including without limitation the rights
+.. to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+.. copies of the Software, and to permit persons to whom the Software is
+.. furnished to do so, subject to the following conditions:
+..
+.. The above copyright notice and this permission notice shall be included in all
+.. copies or substantial portions of the Software.
+..
+.. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+.. IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+.. FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+.. AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+.. LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+.. OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+.. SOFTWARE.
+"""
+
 import networkx as nx
 from copy import deepcopy
 import operator
 import numpy as np
-import networkx as nx
 import scipy.stats.mstats as stat
 from numpy import linalg as LA
 
@@ -12,6 +35,7 @@ def network_deconvolution(mat, **kwargs):
     """Python implementation/translation of network deconvolution by MIT-KELLIS LAB.
 
     .. note::
+       For networkx graphs, use the cdt.utils.graph.remove_indirect_links function
        code author:gidonro [Github username](https://github.com/gidonro/Network-Deconvolution)
 
        LICENSE: MIT-KELLIS LAB
@@ -29,24 +53,33 @@ def network_deconvolution(mat, **kwargs):
        Nature Biotechnology
 
     Args:
-     mat (numpy.ndarray): matrix, if it is a square matrix, the program assumes
-         it is a relevance matrix where mat(i,j) represents the similarity content
-         between nodes i and j. Elements of matrix should be
-         non-negative.
-     beta (float): Scaling parameter, the program maps the largest absolute eigenvalue
-         of the direct dependency matrix to beta. It should be
-         between 0 and 1.
-     alpha (float): fraction of edges of the observed dependency matrix to be kept in
-         deconvolution process.
-     control (int): if 0, displaying direct weights for observed
-         interactions, if 1, displaying direct weights for both observed and
-         non-observed interactions.
+         mat (numpy.ndarray): matrix, if it is a square matrix, the program assumes
+             it is a relevance matrix where mat(i,j) represents the similarity content
+             between nodes i and j. Elements of matrix should be
+             non-negative.
+         beta (float): Scaling parameter, the program maps the largest absolute eigenvalue
+             of the direct dependency matrix to beta. It should be
+             between 0 and 1.
+         alpha (float): fraction of edges of the observed dependency matrix to be kept in
+             deconvolution process.
+         control (int): if 0, displaying direct weights for observed
+             interactions, if 1, displaying direct weights for both observed and
+             non-observed interactions.
 
     Returns:
-    mat_nd (numpy.ndarray): Output deconvolved matrix (direct dependency matrix). Its components
+        numpy.ndarray: Output deconvolved matrix (direct dependency matrix). Its components
         represent direct edge weights of observed interactions.
         Choosing top direct interactions (a cut-off) depends on the application and
         is not implemented in this code.
+
+    Example:
+        >>> from cdt.utils.graph import network_deconvolution
+        >>> import networkx as nx
+        >>> # Generate sample data
+        >>> from cdt.data import AcyclicGraphGenerator
+        >>> graph = AcyclicGraphGenerator(linear).generate()[1]
+        >>> adj_mat = nx.adjacency_matrix(graph).todense()
+        >>> output = network_deconvolution(adj_mat)
 
      .. note::
         To apply ND on regulatory networks, follow steps explained in Supplementary notes
@@ -115,15 +148,27 @@ def network_deconvolution(mat, **kwargs):
 def clr(M, **kwargs):
     """Implementation of the Context Likelihood or Relatedness Network algorithm.
 
+    .. note::
+       For networkx graphs, use the cdt.utils.graph.remove_indirect_links function
+
     Args:
-     mat (numpy.ndarray): matrix, if it is a square matrix, the program assumes
-         it is a relevance matrix where mat(i,j) represents the similarity content
-         between nodes i and j. Elements of matrix should be
-         non-negative.
+        mat (numpy.ndarray): matrix, if it is a square matrix, the program assumes
+            it is a relevance matrix where mat(i,j) represents the similarity content
+            between nodes i and j. Elements of matrix should be
+            non-negative.
 
     Returns:
-    mat_nd (numpy.ndarray): Output deconvolved matrix (direct dependency matrix). Its components
+        numpy.ndarray: Output deconvolved matrix (direct dependency matrix). Its components
         represent direct edge weights of observed interactions.
+
+    Example:
+        >>> from cdt.utils.graph import clr
+        >>> import networkx as nx
+        >>> # Generate sample data
+        >>> from cdt.data import AcyclicGraphGenerator
+        >>> graph = AcyclicGraphGenerator(linear).generate()[1]
+        >>> adj_mat = nx.adjacency_matrix(graph).todense()
+        >>> output = clr(adj_mat)
 
     .. note::
        Ref:Jeremiah J. Faith, Boris Hayete, Joshua T. Thaden, Ilaria Mogno, Jamey
@@ -152,15 +197,27 @@ def clr(M, **kwargs):
 def aracne(m, **kwargs):
     """Implementation of the ARACNE algorithm.
 
+    .. note::
+       For networkx graphs, use the cdt.utils.graph.remove_indirect_links function
+
     Args:
-     mat (numpy.ndarray): matrix, if it is a square matrix, the program assumes
-         it is a relevance matrix where mat(i,j) represents the similarity content
-         between nodes i and j. Elements of matrix should be
-         non-negative.
+        mat (numpy.ndarray): matrix, if it is a square matrix, the program assumes
+            it is a relevance matrix where mat(i,j) represents the similarity content
+            between nodes i and j. Elements of matrix should be
+            non-negative.
 
     Returns:
-    mat_nd (numpy.ndarray): Output deconvolved matrix (direct dependency matrix). Its components
+        numpy.ndarray: Output deconvolved matrix (direct dependency matrix). Its components
         represent direct edge weights of observed interactions.
+
+    Example:
+        >>> from cdt.utils.graph import aracne
+        >>> import networkx as nx
+        >>> # Generate sample data
+        >>> from cdt.data import AcyclicGraphGenerator
+        >>> graph = AcyclicGraphGenerator(linear).generate()[1]
+        >>> adj_mat = nx.adjacency_matrix(graph).todense()
+        >>> output = aracne(adj_mat)
 
     .. note::
        Ref: ARACNE: An Algorithm for the Reconstruction of Gene Regulatory Networks in a Mammalian Cellular Context
@@ -199,13 +256,22 @@ def remove_indirect_links(g, alg="aracne", **kwargs):
 
     Returns:
        networkx.Graph: graph with undirected links removed.
+
+    Example:
+        >>> from cdt.utils.graph import remove_indirect_links
+        >>> import networkx as nx
+        >>> # Generate sample data
+        >>> from cdt.data import AcyclicGraphGenerator
+        >>> graph = AcyclicGraphGenerator(linear).generate()[1]
+        >>> output = remove_indirect_links(graph, alg='aracne')
     """
     alg = {"aracne": aracne,
            "nd": network_deconvolution,
            "clr": clr}[alg]
-    mat = np.array(nx.adjacency_matrix(g).todense())
+    order_list = list(g.nodes())
+    mat = np.array(nx.adjacency_matrix(g, nodelist=order_list).todense())
     return nx.relabel_nodes(nx.DiGraph(alg(mat, **kwargs)),
-                            {idx: i for idx, i in enumerate(list(g.nodes()))})
+                            {idx: i for idx, i in enumerate(order_list)})
 
 
 def dagify_min_edge(g):
@@ -219,12 +285,22 @@ def dagify_min_edge(g):
 
     Returns:
         networkx.DiGraph: DAG made out of the input graph.
+
+    Example:
+        >>> from cdt.utils.graph import dagify_min_edge
+        >>> import networkx as nx
+        >>> import numpy as np
+        >>> # Generate sample data
+        >>> graph = nx.DiGraph((np.ones(4) - np.eye(4)) *
+                               np.random.uniform(size=(4,4)))
+        >>> output = dagify_min_edge(graph)
     """
+    ncycles = len(list(nx.simple_cycles(g)))
     while not nx.is_directed_acyclic_graph(g):
         cycle = next(nx.simple_cycles(g))
-        scores = []
-        edges = []
-        for i, j in zip(cycle[:1], cycle[:1]):
+        edges = [(cycle[-1], cycle[0])]
+        scores = [(g[cycle[-1]][cycle[0]]['weight'])]
+        for i, j in zip(cycle[:-1], cycle[1:]):
             edges.append((i, j))
             scores.append(g[i][j]['weight'])
 
@@ -232,8 +308,9 @@ def dagify_min_edge(g):
         gc = deepcopy(g)
         gc.remove_edge(i, j)
         gc.add_edge(j, i)
-
-        if len(list(nx.simple_cycles(gc))) < len(list(nx.simple_cycles(g))):
+        ngc = len(list(nx.simple_cycles(gc)))
+        if ngc < ncycles:
             g.add_edge(j, i, weight=min(scores))
         g.remove_edge(i, j)
+        ncycles = ngc
     return g

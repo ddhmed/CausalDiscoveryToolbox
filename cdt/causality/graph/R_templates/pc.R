@@ -1,5 +1,27 @@
 # R script to prepare and run the PC algorithms
 
+# MIT License
+#
+# Copyright (c) 2018 Diviyan Kalainathan
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 library('pcalg')
 library('kpcalg')
 library('methods')
@@ -60,17 +82,18 @@ verbose = {VERBOSE} # FALSE
 setOptions = {SETOPTIONS} # NULL
 parentsOf = 1:ncol(dataset)
 alpha <- {ALPHA} # 0.01
-if ({SKELETON}){
-  fixedGaps <- read.csv(file='{FOLDER}{GAPS}', sep=",", header=FALSE) # NULL
-  fixedEdges <- read.csv(file='{FOLDER}{EDGES}', sep=",", header=FALSE) # NULL
-  fixedGaps = (data.matrix(fixedGaps))
-  fixedEdges = (data.matrix(fixedEdges))
-  rownames(fixedGaps) <- colnames(fixedGaps)
-  rownames(fixedEdges) <- colnames(fixedEdges)
+fixedGaps = NULL
+fixedEdges = NULL
 
-}else{
-  fixedGaps = NULL
-  fixedEdges = NULL
+if ({E_GAPS}){
+  fixedGaps <- read.csv(file='{FOLDER}{GAPS}', sep=",", header=FALSE) # NULL
+  fixedGaps = (data.matrix(fixedGaps))
+  rownames(fixedGaps) <- colnames(fixedGaps)
+}
+if ({E_EDGES}){
+  fixedEdges <- read.csv(file='{FOLDER}{EDGES}', sep=",", header=FALSE) # NULL
+  fixedEdges = (data.matrix(fixedEdges))
+  rownames(fixedEdges) <- colnames(fixedEdges)
 }
 result <- runPC(dataset, suffStat = NULL, parentsOf, alpha,
                variableSelMat, setOptions,
